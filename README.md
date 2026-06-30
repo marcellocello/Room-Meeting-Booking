@@ -60,28 +60,3 @@ main()
 | HTTPS enforcement | `usesCleartextTraffic=false` (Android), `NSAllowsArbitraryLoads=false` (iOS) |
 | Backup disabled | `allowBackup=false` (Android) |
 | File sharing disabled | `UIFileSharingEnabled=false` (iOS) |
-
-## Setup
-
-```bash
-# 1. Install dependencies
-flutter pub get
-
-# 2. Run code generation (freezed, json_serializable)
-dart run build_runner build --delete-conflicting-outputs
-
-# 3. Replace cert pins before production
-#    Android: android/app/src/main/res/xml/network_security_config.xml
-#    Dart:    lib/core/security/secure_http_client.dart → CertPins.allowedSha256
-
-# 4. Set API base URL
-flutter run --dart-define=API_BASE_URL=https://api.yourserver.com/v1
-```
-
-## Phase 2 TODOs
-
-- `_HomePlaceholder` → actual `HomeScreen` (calendar, room list)
-- Token refresh interceptor in `_AuthInterceptor.onError`
-- Forgot password screen + OTP flow
-- Push notification setup (FCM)
-- WebSocket client for room display panel
