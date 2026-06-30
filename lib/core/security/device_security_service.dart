@@ -20,6 +20,14 @@ class DeviceSecurityService {
   final _log = Logger();
 
   Future<DeviceSecurityResult> checkDeviceIntegrity() async {
+    if (kDebugMode) {
+      _log.d('[Security] Debug mode - skipping device integrity check');
+      return const DeviceSecurityResult(
+        status: DeviceIntegrityStatus.trusted,
+        violations: []
+      );
+    }
+
     if (kIsWeb) {
       return const DeviceSecurityResult(
         status: DeviceIntegrityStatus.trusted,
@@ -39,7 +47,6 @@ class DeviceSecurityService {
       }
 
       if (!isRealDevice) {
-        // Emulator/simulator — block in production, allow in debug
         if (!kDebugMode) {
           violations.add('not_real_device');
           _log.w('[Security] Running on emulator in production build');

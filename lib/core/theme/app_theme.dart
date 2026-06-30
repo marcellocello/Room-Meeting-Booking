@@ -342,7 +342,7 @@ class AppTheme {
         textStyle: GoogleFonts.inter(
           fontSize: 14, fontWeight: FontWeight.w500,
         ),
-        minimumSize: const Size(44, 44), // min tap target
+        minimumSize: const Size(44, 44),
       ),
     );
   }

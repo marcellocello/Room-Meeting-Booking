@@ -3,40 +3,67 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roomsync/features/auth/bloc/auth_bloc.dart';
 import 'package:roomsync/features/auth/presentation/screens/device_blocked_screen.dart';
+import 'package:roomsync/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:roomsync/features/auth/presentation/screens/login_screen.dart';
+import 'package:roomsync/features/auth/presentation/screens/splash_screen.dart';
 
 abstract class AppRoutes {
+  static const splash = '/';
   static const login = '/login';
+  static const forgotPassword = '/forgot-password';
   static const home = '/home';
   static const deviceBlocked = '/device-blocked';
-  static const splash = '/';
 }
 
 class AppRouter {
   static GoRouter build(AuthBloc authBloc) {
+    final notifier = _RouterNotifier(authBloc);
+
     return GoRouter(
       initialLocation: AppRoutes.splash,
-      refreshListenable: _BlocChangeNotifier(authBloc),
+      refreshListenable: notifier,
       redirect: (context, state) {
-        final authState = authBloc.state;
-        final isOnBlocked = state.matchedLocation == AppRoutes.deviceBlocked;
+        final loc = state.matchedLocation;
 
-        if (isOnBlocked) return null; // Always allow blocked screen
+        if (loc == AppRoutes.deviceBlocked || loc == AppRoutes.forgotPassword) return null;
 
-        return switch (authState.status) {
-          AuthStatus.initial || AuthStatus.loading => null,
+        if (!notifier.splashReady || authBloc.state.status == AuthStatus.initial || authBloc.state.status == AuthStatus.loading) {
+          return loc == AppRoutes.splash ? null : AppRoutes.splash;
+        }
+
+        return switch (authBloc.state.status) {
           AuthStatus.authenticated => AppRoutes.home,
-          AuthStatus.unauthenticated || AuthStatus.error => AppRoutes.login,
+          _ => AppRoutes.login,
         };
       },
       routes: [
         GoRoute(
           path: AppRoutes.splash,
-          builder: (_, __) => const _SplashScreen(),
+          builder: (_, __) => const SplashScreen(),
         ),
         GoRoute(
           path: AppRoutes.login,
-          builder: (_, __) => const LoginScreen(),
+          pageBuilder: (_, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const LoginScreen(),
+            transitionsBuilder: (_, animation, __, child) => FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+            transitionDuration: const Duration(milliseconds: 400)
+          )
+        ),
+        GoRoute(
+          path: AppRoutes.forgotPassword,
+          pageBuilder: (_, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const ForgotPasswordScreen(),
+            transitionsBuilder: (_, animation, __, child) => FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+            transitionDuration: const Duration(milliseconds: 400)
+          )
         ),
         GoRoute(
           path: AppRoutes.deviceBlocked,
@@ -44,34 +71,34 @@ class AppRouter {
         ),
         GoRoute(
           path: AppRoutes.home,
-          builder: (_, __) => const _HomePlaceholder(),
+          pageBuilder: (_, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const _HomePlaceholder(),
+            transitionsBuilder: (_, animation, __, child) => FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+            transitionDuration: const Duration(milliseconds: 400)
+          )
         ),
       ],
     );
   }
 }
 
-/// Notifies GoRouter when BLoC state changes.
-class _BlocChangeNotifier extends ChangeNotifier {
-  _BlocChangeNotifier(AuthBloc bloc) {
-    bloc.stream.listen((_) => notifyListeners());
+class _RouterNotifier extends ChangeNotifier {
+  bool splashReady = false;
+
+  _RouterNotifier(AuthBloc authBloc) {
+    authBloc.stream.listen((_) => notifyListeners());
+
+    Future.delayed(const Duration(seconds: 2), () {
+      splashReady = true;
+      notifyListeners();
+    });
   }
 }
 
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-/// Placeholder — replace with actual HomeScreen in Phase 2
 class _HomePlaceholder extends StatelessWidget {
   const _HomePlaceholder();
 

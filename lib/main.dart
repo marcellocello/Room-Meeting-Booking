@@ -43,7 +43,7 @@ Future<void> main() async {
     rethrow;
   }
 
-  final authRepository = AuthRepository();
+  final authRepository = AuthRepository(useMock: true);
   runApp(RoomSyncApp(authRepository: authRepository));
 }
 

@@ -53,31 +53,30 @@ class _AppTextFieldState extends State<AppTextField> {
       inputFormatters: widget.inputFormatters,
       autocorrect: false,
       enableSuggestions: !widget.isPassword,
-      // Prevent screenshot of password fields (Android)
-      // enableInteractiveSelection: !widget.isPassword,
       validator: widget.validator,
       onChanged: widget.onChanged,
       onFieldSubmitted: widget.onSubmitted,
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppColors.textCharcoal,
-          ),
+        color: AppColors.textCharcoal,
+        fontSize: 14
+      ),
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,
         prefixIcon: widget.prefixIcon,
         suffixIcon: widget.isPassword
-            ? IconButton(
-                icon: Icon(
-                  _obscureText
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  color: AppColors.borderSubtle,
-                  size: 20,
-                ),
-                onPressed: () => setState(() => _obscureText = !_obscureText),
-                tooltip: _obscureText ? 'Tampilkan password' : 'Sembunyikan password',
-              )
-            : null,
+          ? IconButton(
+              icon: Icon(
+                _obscureText
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: AppColors.borderSubtle,
+                size: 20,
+              ),
+              onPressed: () => setState(() => _obscureText = !_obscureText),
+              tooltip: _obscureText ? 'Tampilkan password' : 'Sembunyikan password',
+            )
+          : null,
       ),
     );
   }
