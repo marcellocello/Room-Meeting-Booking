@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roomsync/features/auth/bloc/auth_bloc.dart';
 import 'package:roomsync/features/auth/presentation/screens/device_blocked_screen.dart';
 import 'package:roomsync/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:roomsync/features/auth/presentation/screens/login_screen.dart';
 import 'package:roomsync/features/auth/presentation/screens/splash_screen.dart';
+import 'package:roomsync/features/home/presentation/screens/home_screen.dart';
 
 abstract class AppRoutes {
   static const splash = '/';
@@ -73,7 +73,7 @@ class AppRouter {
           path: AppRoutes.home,
           pageBuilder: (_, state) => CustomTransitionPage(
             key: state.pageKey,
-            child: const _HomePlaceholder(),
+            child: const HomeScreen(),
             transitionsBuilder: (_, animation, __, child) => FadeTransition(
               opacity: animation,
               child: child,
@@ -96,30 +96,5 @@ class _RouterNotifier extends ChangeNotifier {
       splashReady = true;
       notifyListeners();
     });
-  }
-}
-
-class _HomePlaceholder extends StatelessWidget {
-  const _HomePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('RoomSync')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Home — Phase 2'),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () =>
-                  context.read<AuthBloc>().add(const AuthLogoutEvent()),
-              child: const Text('Logout'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
