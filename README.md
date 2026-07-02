@@ -1,62 +1,131 @@
-# RoomSync
+# RoomSync — Meeting Room Booking App
 
-## Structure
+Flutter mobile application for managing and booking meeting rooms within an organization. Built with a security-first approach, BLoC state management, and a clean feature-based architecture.
 
-```
-lib/
-├── core/
-│   ├── theme/
-│   │   └── app_theme.dart          # AppColors, AppRadius, AppSpacing, ThemeData
-│   ├── security/
-│   │   ├── aes_encryption.dart     # AES-256-GCM, key stored in Keychain/Keystore
-│   │   ├── device_security_service.dart  # Jailbreak + root detection
-│   │   └── secure_http_client.dart # Dio + cert pinning + HMAC signing interceptor
-│   └── utils/
-│       └── app_router.dart         # GoRouter + auth guard
-├── features/
-│   └── auth/
-│       ├── bloc/
-│       │   ├── auth_bloc.dart
-│       │   ├── auth_event.dart
-│       │   └── auth_state.dart
-│       ├── data/
-│       │   ├── auth_repository.dart  # Login, session persist (AES encrypted)
-│       │   └── user_model.dart
-│       └── presentation/
-│           ├── screens/
-│           │   ├── login_screen.dart
-│           │   └── device_blocked_screen.dart
-│           └── widgets/
-│               └── app_text_field.dart
-└── main.dart                        # Boot sequence
-```
+---
+
+## Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Mobile | Flutter 3.44+ (iOS & Android) |
+| State Management | BLoC / Cubit (`flutter_bloc`) |
+| Navigation | `go_router` with `StatefulShellRoute` |
+| HTTP Client | Dio + HMAC signing interceptor |
+| Security | AES-256-GCM, `safe_device`, `flutter_secure_storage` |
+| UI | Material 3, Google Fonts (Inter), `shimmer` |
+| Code Gen | `freezed`, `json_serializable`, `build_runner` |
+
+---
 
 ## Boot Sequence
 
 ```
 main()
   → setPreferredOrientations (portrait)
-  → setSystemUIOverlayStyle (dark)
+  → setSystemUIOverlayStyle (light theme)
   → DeviceSecurityService.checkDeviceIntegrity()
-      → jailbroken? → runApp(_BlockedApp) and stop
+      → jailbroken/rooted (production only) → DeviceBlockedScreen, halt
   → AesEncryption.initialize()
-      → read/generate AES key from FlutterSecureStorage
-  → AuthRepository()
+      → read/generate 256-bit key from FlutterSecureStorage
   → runApp(RoomSyncApp)
       → AuthBloc → AuthCheckSessionEvent
-          → getStoredSession() → decrypt AES blob from SecureStorage
+          → decrypt AES blob from SecureStorage
           → authenticated → /home | unauthenticated → /login
 ```
+
+---
 
 ## Security Layers
 
 | Layer | Implementation |
-|-------|---------------|
-| Jailbreak/Root | `flutter_jailbreak_detection` — checked at boot |
-| AES-256-GCM | `encrypt` package — key in `FlutterSecureStorage` |
-| Session storage | AES-encrypted blob in Keychain (iOS) / EncryptedSharedPrefs (Android) |
-| Certificate pinning | `network_security_config.xml` (Android), ATS (iOS), `IOHttpClientAdapter` (Dart layer) |
-| HMAC request signing | `HmacSigningInterceptor` — derived sub-key, not the AES key directly |
-| HTTPS enforcement | `usesCleartextTraffic=false` (Android), `NSAllowsArbitraryLoads=false` (iOS) |
-| Backup disabled | `allowBackup=false` (Android) |
-| File sharing disabled | `UIFileSharingEnabled=false` (iOS) |
+|---|---|
+| Jailbreak / Root detection | `safe_device` — checked at boot, skipped in debug |
+| AES-256-GCM encryption | `encrypt` package — key in Keychain (iOS) / EncryptedSharedPrefs (Android) |
+| Session storage | AES-encrypted blob via `flutter_secure_storage` |
+| HMAC request signing | `HmacSigningInterceptor` — `X-Request-Signature` header on every request |
+| HTTPS enforcement | `network_security_config.xml` (Android), ATS `Info.plist` (iOS) |
+| Cert pinning hook | `IOHttpClientAdapter` — active in production builds only |
+| Backup disabled | `allowBackup=false` (Android), `UIFileSharingEnabled=false` (iOS) |
+
+---
+
+## Navigation
+
+`go_router` with `StatefulShellRoute.indexedStack` — bottom nav is persistent and shared across branches.
+
+```
+/                   → SplashScreen (2s min, then auth redirect)
+/login              → LoginScreen
+/forgot-password    → ForgotPasswordScreen  (public, exempt from auth redirect)
+/device-blocked     → DeviceBlockedScreen   (public, exempt from auth redirect)
+
+Shell (MainShell — persistent bottom nav)
+  /home             → HomeScreen
+  /discover         → DiscoverScreen
+  /bookings         → BookingsScreen
+  /profile          → ProfileScreen
+```
+
+Auth redirect rules:
+- `unauthenticated` → `/login`
+- `authenticated` on `/login` or `/` → `/home`
+- `authenticated` on any other route → `null` (no override)
+
+---
+
+## Mock Credentials
+
+> Active while `AuthRepository.useMock = true`
+
+| Email | Password | Role |
+|---|---|---|
+| `admin@gmail.com` | `password` | Admin |
+| `staff@gmail.com` | `password` | Staff |
+
+---
+
+## Setup
+
+```bash
+# 1. Install dependencies
+flutter pub get
+
+# 2. Code generation (freezed, json_serializable)
+dart run build_runner build --delete-conflicting-outputs
+
+# 3. iOS
+cd ios && pod install && cd ..
+
+# 4. Disable SPM (required — plugins don't support SPM yet)
+flutter config --no-enable-swift-package-manager
+
+# 5. Run
+flutter run --dart-define=API_BASE_URL=https://api.yourserver.com/v1
+```
+
+### Certificate Pinning (before production)
+
+```bash
+# Generate SPKI hash
+openssl s_client -connect api.yourserver.com:443 \
+  | openssl x509 -pubkey -noout \
+  | openssl pkey -pubin -outform der \
+  | openssl dgst -sha256 -binary \
+  | base64
+```
+
+Replace placeholder hashes in:
+- `lib/core/security/secure_http_client.dart` → `CertPins.allowedSha256`
+- `android/app/src/main/res/xml/network_security_config.xml`
+
+---
+
+## Switch to Real API
+
+```dart
+// lib/features/auth/data/auth_repository.dart
+AuthRepository(useMock: false) // ← in main.dart
+```
+
+Then implement `_apiLogin()` in `auth_repository.dart` using `SecureHttpClient.instance.dio`.

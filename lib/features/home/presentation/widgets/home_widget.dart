@@ -211,7 +211,7 @@ class RoomCard extends StatelessWidget {
         children: [
           Stack(
             children: [
-              _RoomImagePlaceholder(roomId: room.id),
+              _RoomImagePlaceholder(roomId: room.id, image: room.imageUrl ?? 'null'),
               Positioned(
                 top: AppSpacing.sm,
                 left: AppSpacing.sm,
@@ -291,7 +291,8 @@ class RoomCard extends StatelessWidget {
 
 class _RoomImagePlaceholder extends StatelessWidget {
   final String roomId;
-  const _RoomImagePlaceholder({required this.roomId});
+  final String image;
+  const _RoomImagePlaceholder({required this.roomId, required this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -302,17 +303,28 @@ class _RoomImagePlaceholder extends StatelessWidget {
     ];
     final idx = roomId.hashCode % colors.length;
 
-    return Container(
-      height: 160,
-      width: double.infinity,
-      color: colors[idx.abs()],
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.meeting_room_outlined, size: 40, color: Colors.white.withAlpha(60)),
-        ],
-      ),
-    );
+    return image == 'null'
+        ? Container(
+            height: 160,
+            width: double.infinity,
+            color: colors[idx.abs()],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.meeting_room_outlined, size: 40, color: Colors.white.withAlpha(60)),
+              ],
+            ),
+          )
+        : Container(
+            height: 160,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(image!),
+                fit: BoxFit.cover,
+              ),
+            ),
+        );
   }
 }
 

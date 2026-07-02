@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart' as shimmer;
 import 'package:roomsync/core/theme/app_theme.dart';
 import 'package:roomsync/features/home/data/home_data.dart';
@@ -95,7 +96,9 @@ class _HomeScreenState extends State<HomeScreen>
                   Padding(
                     padding: const EdgeInsets.only(right: AppSpacing.md),
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        context.go('/profile');
+                      },
                       child: CircleAvatar(
                         radius: 16,
                         backgroundColor: AppColors.secondary,
@@ -129,8 +132,8 @@ class _HomeScreenState extends State<HomeScreen>
                       : FadeTransition(
                           opacity: _fadeAnim,
                           child: _data!.nextBooking != null
-                              ? NextBookingCard(booking: _data!.nextBooking!)
-                              : const SizedBox.shrink(),
+                            ? NextBookingCard(booking: _data!.nextBooking!)
+                            : const SizedBox.shrink(),
                         ),
                     const SizedBox(height: AppSpacing.lg),
                     const Text(
@@ -222,7 +225,6 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ),
-      bottomNavigationBar: _BottomNav(),
     );
   }
 }
@@ -239,12 +241,6 @@ class _WelcomeHeader extends StatelessWidget {
         Text(
           'Welcome, Alex',
           style: Theme.of(context).textTheme.displaySmall,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'You have ${data.totalBookingsToday} bookings today.'
-          '${data.nextBooking != null ? ' Next one is in ${data.nextBooking!.minutesLeft} minutes.' : ''}',
-          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
     );
@@ -291,57 +287,6 @@ class Shimmer extends StatelessWidget {
       baseColor: AppColors.shimmerBase,
       highlightColor: const Color(0xFFF6F3F5),
       child: child,
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.borderSubtle)),
-      ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        currentIndex: 0,
-        selectedItemColor: AppColors.secondary,
-        unselectedItemColor: AppColors.textMuted,
-        selectedLabelStyle: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'Inter',
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 11,
-          fontFamily: 'Inter',
-        ),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore_outlined),
-            activeIcon: Icon(Icons.explore),
-            label: 'Discover',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            activeIcon: Icon(Icons.calendar_month),
-            label: 'Bookings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
     );
   }
 }

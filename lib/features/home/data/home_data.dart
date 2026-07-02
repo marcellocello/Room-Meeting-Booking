@@ -7,6 +7,7 @@ class UpcomingBooking {
   final String endTime;
   final String floor;
   final int minutesLeft;
+  final String? imageUrl;
 
   const UpcomingBooking({
     required this.id,
@@ -17,6 +18,7 @@ class UpcomingBooking {
     required this.endTime,
     required this.floor,
     required this.minutesLeft,
+    this.imageUrl,
   });
 }
 
@@ -84,6 +86,7 @@ abstract class HomeMockData {
         endTime: '11:00 AM',
         floor: 'Floor 3',
         minutesLeft: 15,
+        imageUrl: 'assets/images/room-4.jpg'
       ),
       availableRooms: [
         RoomModel(
@@ -94,6 +97,7 @@ abstract class HomeMockData {
           capacityMax: 12,
           facilities: ['Projector', 'Whiteboard'],
           isAvailable: true,
+          imageUrl: 'assets/images/room-1.jpg'
         ),
         RoomModel(
           id: 'rm-002',
@@ -103,6 +107,27 @@ abstract class HomeMockData {
           capacityMax: 30,
           facilities: ['Video Conferencing', 'Whiteboard'],
           isAvailable: true,
+          imageUrl: 'assets/images/room-2.jpg'
+        ),
+        RoomModel(
+          id: 'rm-003',
+          name: 'Main Room Meeting',
+          floor: 'Floor 1',
+          capacityMin: 4,
+          capacityMax: 10,
+          facilities: ['Android TV', 'Whiteboard'],
+          isAvailable: true,
+          imageUrl: 'assets/images/room-3.jpg'
+        ),
+        RoomModel(
+          id: 'rm-004',
+          name: 'Lavender Room',
+          floor: 'Floor 2',
+          capacityMin: 15,
+          capacityMax: 20,
+          facilities: ['Android TV', 'Whiteboard'],
+          isAvailable: true,
+          imageUrl: 'assets/images/room-5.jpg'
         ),
       ],
       schedule: [
