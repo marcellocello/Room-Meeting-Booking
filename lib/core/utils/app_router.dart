@@ -6,6 +6,7 @@ import 'package:roomsync/features/auth/presentation/screens/device_blocked_scree
 import 'package:roomsync/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:roomsync/features/auth/presentation/screens/login_screen.dart';
 import 'package:roomsync/features/auth/presentation/screens/splash_screen.dart';
+import 'package:roomsync/features/discover/presentation/screens/discover_screen.dart';
 import 'package:roomsync/features/home/presentation/screens/home_screen.dart';
 import 'package:roomsync/features/profile/presentation/screens/profile_screen.dart';
 
@@ -96,7 +97,14 @@ class AppRouter {
             StatefulShellBranch(routes: [
               GoRoute(
                 path: AppRoutes.discover,
-                builder: (_, __) => const _PlaceholderScreen(label: 'Discover'),
+                pageBuilder: (_, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const DiscoverScreen(),
+                  transitionsBuilder: (_, animation, __, child) => FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  )
+                ),
               ),
             ]),
             StatefulShellBranch(routes: [
